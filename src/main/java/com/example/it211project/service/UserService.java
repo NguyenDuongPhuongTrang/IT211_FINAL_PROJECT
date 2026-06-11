@@ -1,5 +1,6 @@
 package com.example.it211project.service;
 
+import com.example.it211project.model.dto.request.ChangePasswordRequest;
 import com.example.it211project.model.dto.request.RegisterRequest;
 import com.example.it211project.model.dto.request.UserRequest;
 import com.example.it211project.model.dto.response.UserResponse;
@@ -11,4 +12,5 @@ public interface UserService {
     UserResponse getUserById(Long id);
     UserResponse updateUser(Long id, UserRequest request);
     void deleteUser(Long id);
+    void changePassword(String username, ChangePasswordRequest request);
 }

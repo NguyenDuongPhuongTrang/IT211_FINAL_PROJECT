@@ -3,6 +3,8 @@ package com.example.it211project.service.impl;
 import com.example.it211project.enums.Role;
 import com.example.it211project.exception.ConflictException;
 import com.example.it211project.exception.ResourceNotFoundException;
+import com.example.it211project.exception.UnauthorizedException;
+import com.example.it211project.model.dto.request.ChangePasswordRequest;
 import com.example.it211project.model.dto.request.RegisterRequest;
 import com.example.it211project.model.dto.request.UserRequest;
 import com.example.it211project.model.dto.response.UserResponse;
@@ -24,6 +26,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse register(RegisterRequest request) {
+        if(userRepository.existsByUsername(request.getUsername())){
+            throw new ConflictException("Username đã tồn tại");
+        }
+
         if(userRepository.existsByEmail(request.getEmail())){
             throw new ConflictException("Email đã tồn tại");
         }
@@ -85,6 +91,18 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy User"));
         userRepository.delete(user);
+    }
+
+    @Override
+    public void changePassword(String username, ChangePasswordRequest request) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy user"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new UnauthorizedException("Mật khẩu cũ không chính xác");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
     private UserResponse toResponse(User user) {

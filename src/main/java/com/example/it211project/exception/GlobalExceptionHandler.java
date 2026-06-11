@@ -74,12 +74,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex){
-        ErrorResponse response =
-                ErrorResponse.builder()
-                        .status(401)
-                        .message(ex.getMessage())
-                        .timestamp(LocalDateTime.now())
-                        .build();
+        ErrorResponse response = ErrorResponse.builder()
+                .status(401)
+                .message(ex.getMessage())
+                .errors(null)
+                .timestamp(LocalDateTime.now())
+                .build();
 
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)

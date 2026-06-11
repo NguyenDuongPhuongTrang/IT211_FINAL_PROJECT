@@ -11,6 +11,7 @@ import com.example.it211project.repository.UserRepository;
 import com.example.it211project.security.jwt.JwtService;
 import com.example.it211project.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -54,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
                     user.getUsername(),
                     user.getRole().name());
         } catch (Exception e) {
+            log.error("Lỗi khi refresh token: {}", e.getMessage(), e);
             throw new UnauthorizedException("Refresh token không hợp lệ");
         }
     }
