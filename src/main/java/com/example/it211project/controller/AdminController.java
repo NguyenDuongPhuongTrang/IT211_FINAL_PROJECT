@@ -53,9 +53,9 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return new ResponseEntity<>(new ApiResponse<>(
-                HttpStatus.OK.value(),
+                HttpStatus.NO_CONTENT.value(),
                 "Xóa người dùng thành công",
                 null
-        ), HttpStatus.OK);
+        ), HttpStatus.NO_CONTENT);
     }
 }

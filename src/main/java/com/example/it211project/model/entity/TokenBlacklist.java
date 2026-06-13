@@ -1,26 +1,26 @@
 package com.example.it211project.model.entity;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
+import org.springframework.data.redis.core.index.Indexed;
 
-import java.time.LocalDateTime;
-
-@Entity
-@Table(name = "token_blacklist")
+@RedisHash("token_blacklist")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
 public class TokenBlacklist {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(length = 1000)
+    @Indexed
     private String token;
 
-    private LocalDateTime expiredAt;
+    @TimeToLive
+    private Long ttl;
 }

@@ -9,17 +9,8 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 public class ExceptionLoggingAspect {
-
-    @AfterThrowing(
-            pointcut =
-                    "execution(* com.example.it211project.service.impl.*.*(..))",
-            throwing = "ex"
-    )
-    public void logException(
-            JoinPoint joinPoint,
-            Exception ex
-    ) {
-
+    @AfterThrowing(pointcut = "execution(* com.example.it211project.service.impl.*.*(..))", throwing = "ex")
+    public void logException(JoinPoint joinPoint, Exception ex) {
         log.error(
                 "ERROR -> {}.{} | {}",
                 joinPoint.getTarget()

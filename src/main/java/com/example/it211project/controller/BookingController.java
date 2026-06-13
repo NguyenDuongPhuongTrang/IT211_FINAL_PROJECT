@@ -7,6 +7,7 @@ import com.example.it211project.model.dto.response.BookingResponse;
 import com.example.it211project.model.entity.User;
 import com.example.it211project.repository.UserRepository;
 import com.example.it211project.service.BookingService;
+import com.example.it211project.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,12 +22,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookingController {
     private final BookingService bookingService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<BookingResponse>> createBooking(@Valid @RequestBody BookingRequest request, Authentication authentication) {
         String username = authentication.getName();
-        User user = userRepository.findByUsername(username).orElseThrow();
+        User user = userService.getUserEntityByUsername(username);
 
         return new ResponseEntity<>(new ApiResponse<>(
                 HttpStatus.CREATED.value(),
@@ -47,7 +48,8 @@ public class BookingController {
 
     @GetMapping("/my-bookings")
     public ResponseEntity<ApiResponse<List<BookingResponse>>> myBookings(Authentication authentication) {
-        User user = userRepository.findByUsername(authentication.getName()).orElseThrow();
+        String username = authentication.getName();
+        User user = userService.getUserEntityByUsername(username);
 
         return new ResponseEntity<>(new ApiResponse<>(
                 HttpStatus.OK.value(),

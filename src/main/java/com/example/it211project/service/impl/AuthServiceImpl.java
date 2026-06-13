@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
+import java.util.Date;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -63,14 +65,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout(String token) {
-        TokenBlacklist blacklist = new TokenBlacklist();
+        Date expiration = jwtService.extractExpiration(token);
+        long ttlSeconds = (expiration.getTime() - System.currentTimeMillis()) / 1000;
 
-        blacklist.setToken(token);
-        blacklist.setExpiredAt(jwtService.extractExpiration(token)
-                        .toInstant()
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDateTime());
+        if (ttlSeconds > 0) {
+            TokenBlacklist blacklist = TokenBlacklist.builder()
+                    .id(UUID.randomUUID().toString())
+                    .token(token)
+                    .ttl(ttlSeconds)
+                    .build();
 
-        tokenBlacklistRepository.save(blacklist);
+            tokenBlacklistRepository.save(blacklist);
+        }
     }
 }

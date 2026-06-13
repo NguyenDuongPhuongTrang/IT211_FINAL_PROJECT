@@ -1,5 +1,7 @@
 package com.example.it211project.service.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.example.it211project.exception.ResourceNotFoundException;
 import com.example.it211project.model.dto.response.CourtImageResponse;
 import com.example.it211project.model.entity.Court;
@@ -8,52 +10,44 @@ import com.example.it211project.repository.CourtImageRepository;
 import com.example.it211project.repository.CourtRepository;
 import com.example.it211project.service.CourtImageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class CourtImageServiceImpl implements CourtImageService {
     private final CourtRepository courtRepository;
     private final CourtImageRepository courtImageRepository;
-
-    @Value("${imageUploadDir}")
-    private String imageUploadDir;
+    private final Cloudinary cloudinary;
 
     @Override
     public List<CourtImageResponse> uploadImages(Long courtId, List<MultipartFile> files) {
-        Court court = courtRepository.findById(courtId).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sân"));
-        File folder = new File(imageUploadDir);
-
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
+        Court court = courtRepository.findById(courtId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sân"));
 
         return files.stream().map(file -> {
             try {
-                String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                Path path = Paths.get(imageUploadDir + fileName);
-                Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+                Map<?, ?> uploadResult = cloudinary.uploader().upload(
+                        file.getBytes(),
+                        ObjectUtils.asMap("folder", "courts/" + courtId)
+                );
+                String imageUrl = (String) uploadResult.get("secure_url");
+
                 CourtImage image = CourtImage.builder()
-                        .imageUrl("/images/" + fileName)
+                        .imageUrl(imageUrl)
                         .court(court)
                         .build();
                 courtImageRepository.save(image);
+
                 return CourtImageResponse.builder()
-                                .id(image.getId())
-                                .imageUrl(image.getImageUrl())
-                                .build();
+                        .id(image.getId())
+                        .imageUrl(image.getImageUrl())
+                        .build();
             } catch (Exception e) {
-                throw new RuntimeException("Upload ảnh thất bại");
+                throw new RuntimeException("Upload ảnh lên Cloudinary thất bại: " + e.getMessage());
             }
         }).toList();
     }
@@ -63,12 +57,10 @@ public class CourtImageServiceImpl implements CourtImageService {
         return courtImageRepository
                 .findByCourtId(courtId)
                 .stream()
-                .map(image ->
-                        CourtImageResponse.builder()
-                                .id(image.getId())
-                                .imageUrl(image.getImageUrl())
-                                .build()
-                )
+                .map(image -> CourtImageResponse.builder()
+                        .id(image.getId())
+                        .imageUrl(image.getImageUrl())
+                        .build())
                 .toList();
     }
 }

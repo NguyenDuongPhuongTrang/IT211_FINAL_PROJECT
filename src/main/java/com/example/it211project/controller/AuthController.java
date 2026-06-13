@@ -1,5 +1,6 @@
 package com.example.it211project.controller;
 
+import com.example.it211project.model.dto.request.ForgotPasswordRequest;
 import com.example.it211project.model.dto.request.LoginRequest;
 import com.example.it211project.model.dto.request.RefreshTokenRequest;
 import com.example.it211project.model.dto.request.RegisterRequest;
@@ -53,9 +54,24 @@ public class AuthController {
         ), HttpStatus.OK);
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        userService.forgotPassword(request);
+        return new ResponseEntity<>(new ApiResponse<>(
+                HttpStatus.OK.value(),
+                "Đặt lại mật khẩu thành công",
+                null
+        ), HttpStatus.OK);
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Token không hợp lệ", null));
+        }
+
         String token = authHeader.substring(7);
 
         authService.logout(token);
